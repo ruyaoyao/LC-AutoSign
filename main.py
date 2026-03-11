@@ -45,33 +45,16 @@ def mask_json_customer_code(data):
 # ======== 推送通知 ========
 
 def send_msg_by_server(send_key, title, content):
-    # push_url = f'https://sctapi.ftqq.com/{send_key}.send'
-    # data = {
-    #     'text': title,
-    #     'desp': content
-    # }
-    # try:
-    #     response = requests.post(push_url, data=data)
-    #     return response.json()
-    # except RequestException:
-    #     return None
-    full_text = f"{title}\n{content}"  # 有些平台不需要单独标题
-    
-    # Telegram
-    telegram_bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
-    telegram_chat_id = os.getenv('TELEGRAM_CHAT_ID')
-    print(f"Telegram-日志已推送{telegram_chat_id}{telegram_bot_token}")
-    if telegram_bot_token and telegram_chat_id:
-        try:
-            url = f"https://api.telegram.org/bot{telegram_bot_token}/sendMessage"
-            params = {'chat_id': telegram_chat_id, 'text': full_text}
-            response = requests.get(url, params=params)
-            if response.status_code == 200:
-            #     log("Telegram-日志已推送")
-                print(f"Telegram-日志已推送")
-            return response.json()
-        except RequestException:
-            return None
+    push_url = f'https://sctapi.ftqq.com/{send_key}.send'
+    data = {
+        'text': title,
+        'desp': content
+    }
+    try:
+        response = requests.post(push_url, data=data)
+        return response.json()
+    except RequestException:
+        return None
 
 
 # ======== 单个账号签到逻辑 ========
