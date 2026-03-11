@@ -5,6 +5,7 @@ import json
 import time
 import random
 import os
+from itertools import cycle
 from requests.exceptions import RequestException
 from collections import defaultdict
 
@@ -151,14 +152,13 @@ def main():
         return
         
     # 复制 SendKeyList 使其长度等于 AccessTokenList
-    original_sendkey_count = len(SendKeyList)
-    if original_sendkey_count > 0:
-        # 计算需要复制的次数
-        repeat_times = len(AccessTokenList) // original_sendkey_count + 1
-        SendKeyList = (SendKeyList * repeat_times)[:len(AccessTokenList)]
+    # 使用 cycle 循环填充
+    if SendKeyList:
+        SendKeyList = [next(cycle(SendKeyList)) for _ in range(len(AccessTokenList))]
     else:
         SendKeyList = [''] * len(AccessTokenList)
     
+    print(f"🔧 SendKeyList共发现 {SendKeyList}")
     # 确保长度一致
     min_length = min(len(AccessTokenList), len(SendKeyList))
     AccessTokenList = AccessTokenList[:min_length]
