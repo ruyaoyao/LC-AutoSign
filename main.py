@@ -149,7 +149,16 @@ def main():
     if not SendKeyList:
         print("❌ 请设置 SENDKEYS")
         return
-
+        
+    # 复制 SendKeyList 使其长度等于 AccessTokenList
+    original_sendkey_count = len(SendKeyList)
+    if original_sendkey_count > 0:
+        # 计算需要复制的次数
+        repeat_times = len(AccessTokenList) // original_sendkey_count + 1
+        SendKeyList = (SendKeyList * repeat_times)[:len(AccessTokenList)]
+    else:
+        SendKeyList = [''] * len(AccessTokenList)
+    
     # 确保长度一致
     min_length = min(len(AccessTokenList), len(SendKeyList))
     AccessTokenList = AccessTokenList[:min_length]
