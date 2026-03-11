@@ -60,15 +60,18 @@ def send_msg_by_server(send_key, title, content):
     # Telegram
     telegram_bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
     telegram_chat_id = os.getenv('TELEGRAM_CHAT_ID')
+    print(f"Telegram-日志已推送{telegram_chat_id}{telegram_bot_token}")
     if telegram_bot_token and telegram_chat_id:
         try:
             url = f"https://api.telegram.org/bot{telegram_bot_token}/sendMessage"
             params = {'chat_id': telegram_chat_id, 'text': full_text}
             response = requests.get(url, params=params)
-            # if response.status_code == 200:
+            if response.status_code == 200:
             #     log("Telegram-日志已推送")
-        except:
-            pass  # 静默失败
+                print(f"Telegram-日志已推送")
+            return response.json()
+        except RequestException:
+            return None
 
 
 # ======== 单个账号签到逻辑 ========
