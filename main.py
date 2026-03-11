@@ -55,7 +55,6 @@ def send_msg_by_server(send_key, title, content):
     #     return response.json()
     # except RequestException:
     #     return None
-    title = "嘉立创签到总结"
     full_text = f"{title}\n{content}"  # 有些平台不需要单独标题
     
     # Telegram
