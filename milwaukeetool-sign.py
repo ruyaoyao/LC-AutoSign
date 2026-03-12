@@ -98,7 +98,7 @@ def send_wechat_notification(failed_accounts, total_count, success_count):
 def process_account(account_info, index, total, failed_list):
     token = os.getenv('MILWAUKEETOOL_TOKEN_LIST', '')
     client_id = os.getenv('MILWAUKEETOOL_CLIENT_ID', '')
-    # token_show = f"{token[:6]}...{token[-4:]}" if len(token) > 10 else "***"
+    token_show = f"{token[:6]}...{token[-4:]}" if len(token) > 10 else "***"
 
     print(f"      ├─ 方法: {GLOBAL_METHOD}")
     print(f"      ├─ ID: {client_id}")
