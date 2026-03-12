@@ -100,7 +100,6 @@ def process_account(account_info, index, total, failed_list):
     client_id = os.getenv('MILWAUKEETOOL_CLIENT_ID', '')
     # token_show = f"{token[:6]}...{token[-4:]}" if len(token) > 10 else "***"
 
-    print(f"\n[{index}/{total}] 正在处理: {name}")
     print(f"      ├─ 方法: {GLOBAL_METHOD}")
     print(f"      ├─ ID: {client_id}")
     print(f"      └─ Token: {token_show}")
