@@ -7,6 +7,8 @@ from datetime import datetime
 from pathlib import Path
 
 # ================= 全局配置区 =================
+CONFIG_FILE = "accounts.json"
+
 # 【核心开关】统一修改所有账号执行的方法
 GLOBAL_METHOD = "add.signon.item"# 签到方法
 # GLOBAL_METHOD = "get.signon.list"#这个是签到天数的
@@ -95,8 +97,8 @@ def send_wechat_notification(failed_accounts, total_count, success_count):
 
 
 def process_account(account_info, index, total, failed_list):
-    token = os.getenv('TOKEN_LIST', '')
-    client_id = os.getenv('CLIENT_ID', '')
+    token = os.getenv('MILWAUKEETOOL_TOKEN_LIST', '')
+    client_id = os.getenv('MILWAUKEETOOL_CLIENT_ID', '')
     # token_show = f"{token[:6]}...{token[-4:]}" if len(token) > 10 else "***"
 
     print(f"\n[{index}/{total}] 正在处理: {name}")
@@ -178,6 +180,23 @@ def main():
     print(f"🚀 批量签到启动 | 模式: {GLOBAL_METHOD}")
     print(f"📅 时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
+
+    if not Path(CONFIG_FILE).exists():
+        print(f"\n❌ 错误: 未找到 '{CONFIG_FILE}'")
+        return
+
+    try:
+        with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+            accounts = json.load(f)
+    except Exception as e:
+        print(f"\n❌ 配置文件错误: {e}")
+        return
+
+    if not isinstance(accounts, list) or len(accounts) == 0:
+        print("\n❌ 配置文件为空")
+        return
+
+    print(f"📂 共加载 {len(accounts)} 个账号\n")
 
     success_count = 0
     failed_list = []  # 存储 (名字, 原因)
