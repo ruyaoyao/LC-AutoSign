@@ -182,7 +182,7 @@ def main():
     success_count = 0
     failed_list = []  # 存储 (名字, 原因)
 
-    process_account(0, i, 1, failed_list)
+    process_account(0, 1, 1, failed_list)
 
     # for i, acc in enumerate(accounts, 1):
     #     if process_account(acc, i, len(accounts), failed_list):
