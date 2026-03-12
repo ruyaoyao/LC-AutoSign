@@ -7,8 +7,6 @@ from datetime import datetime
 from pathlib import Path
 
 # ================= 全局配置区 =================
-CONFIG_FILE = "accounts.json"
-
 # 【核心开关】统一修改所有账号执行的方法
 GLOBAL_METHOD = "add.signon.item"# 签到方法
 # GLOBAL_METHOD = "get.signon.list"#这个是签到天数的
@@ -181,23 +179,6 @@ def main():
     print(f"📅 时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
 
-    if not Path(CONFIG_FILE).exists():
-        print(f"\n❌ 错误: 未找到 '{CONFIG_FILE}'")
-        return
-
-    try:
-        with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
-            accounts = json.load(f)
-    except Exception as e:
-        print(f"\n❌ 配置文件错误: {e}")
-        return
-
-    if not isinstance(accounts, list) or len(accounts) == 0:
-        print("\n❌ 配置文件为空")
-        return
-
-    print(f"📂 共加载 {len(accounts)} 个账号\n")
-
     success_count = 0
     failed_list = []  # 存储 (名字, 原因)
 
@@ -216,7 +197,7 @@ def main():
 
     # 如果有失败，发送通知
     if len(failed_list) > 0:
-        send_wechat_notification(failed_list, len(accounts), success_count)
+        print("\n失敗。")
     else:
         print("\n🎉 全部成功，无需发送通知。")
 
