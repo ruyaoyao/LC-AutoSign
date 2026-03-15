@@ -174,8 +174,8 @@ def process_account(account_info, index, total, failed_list):
     try:
         print(f"      ⏳ 檢查簽到..等待 {delay:.1f}s...")
         time.sleep(delay)
-
-        response = requests.post('https://service.milwaukeetool.cn/api/v1/signon', headers=HEADERS, json=payload, timeout=20)
+        payload["method"] = str("get.signon.list")
+        response = requests.post(URL, headers=HEADERS, json=payload, timeout=20)
         resp_json = response.json()
 
         code = resp_json.get("code")
