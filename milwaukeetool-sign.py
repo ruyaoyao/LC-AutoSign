@@ -155,6 +155,15 @@ def process_account(account_info, index, total, failed_list):
             print(f"      ✅ 结果: 成功 | {msg}")
             if SHOW_RAW_RESPONSE:
                 print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
+
+            
+            print("\n📢 檢查簽到天數")
+
+            payload["method"] = "get.signon.list"#
+            response = requests.post(URL, headers=HEADERS, json=payload, timeout=10)
+            resp_json = response.json()
+            print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
+            
             return True
         else:
             print(f"      ⚠️ 结果: 失败 (Code:{code}) | {msg}")
