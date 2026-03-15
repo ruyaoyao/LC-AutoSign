@@ -31,7 +31,7 @@ HEADERS = {
     "Connection": "keep-alive",
     "Content-Type": "application/json",
     "Accept": "*/*",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 MicroMessenger/7.0.20.1781(0x6700143B) NetType/WIFI MiniProgramEnv/Windows WindowsWechat/WMPF WindowsWechat(0x63090a13) UnifiedPCWindowsWechat(0xf2541739) XWEB/18955",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 MicroMessenger/7.0.20.1781(0x6700143B) NetType/WIFI MiniProgramEnv/Windows WindowsWechat/WMPF WindowsWechat(0x63090a13) UnifiedPCWindowsWechat(0xf2541739) XWEB/18955",
     "xweb_xhr": "1",
     "Sec-Fetch-Site": "cross-site",
     "Sec-Fetch-Mode": "cors",
@@ -159,10 +159,18 @@ def process_account(account_info, index, total, failed_list):
             
             print("\n📢 檢查簽到天數")
 
-            payload["method"] = "get.signon.list"#
+            payload = {
+                "token": token,
+                "client_id": client_id,
+                "appkey": APPKEY,
+                "format": FORMAT,
+                "timestamp": timestamp_str,
+                "platform": PLATFORM,
+                "method": "get.signon.list"
+            }
             sign_val = generate_sign(payload)
             payload["sign"] = sign_val
-            response = requests.post(URL, headers=HEADERS, json=payload, timeout=10)
+            response = requests.post(URL, headers=HEADERS, json=payload, timeout=40)
             resp_json = response.json()
             print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
             
