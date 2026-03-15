@@ -55,6 +55,164 @@ def generate_sign(params_dict):
     s += SECRET
     return hashlib.md5(s.encode('utf-8')).hexdigest()
 
+def format_sign_status(json_data):
+    """
+    將簽到狀態 JSON 資料格式化為易讀的文字
+    """
+    try:
+        # 解析 JSON
+        if isinstance(json_data, str):
+            data = json.loads(json_data)
+        else:
+            data = json_data
+        
+        # 檢查回應狀態
+        if data.get('status') != 200:
+            return f"❌ 錯誤：API 回應異常 (狀態碼: {data.get('status')})"
+        
+        # 取得簽到資料
+        sign_data = data.get('data', {})
+        sign_status = sign_data.get('SigninStatus', 0)
+        sign_count = sign_data.get('signcount', 0)
+        items = sign_data.get('items', [])
+        send_num = sign_data.get('send_num', 0)
+        used_num = sign_data.get('used_num', 0)
+        available_num = sign_data.get('available_send_num', 0)
+        
+        # 格式化輸出
+        output = []
+        output.append("=" * 50)
+        output.append(" 📋 簽到系統狀態報告 ".center(48, "="))
+        output.append("=" * 50)
+        output.append("")
+        
+        # 基本狀態
+        status_text = "✅ 已簽到" if sign_status == 1 else "❌ 未簽到"
+        output.append(f"【基本資訊】")
+        output.append(f"  🔐 簽到狀態：{status_text}")
+        output.append(f"  📊 連續簽到：{sign_count} 天")
+        output.append(f"  📅 簽到總數：{len(items)} 天")
+        output.append("")
+        
+        # 簽到記錄
+        if items:
+            output.append("【簽到記錄】")
+            # 排序日期
+            sorted_items = sorted(items)
+            
+            # 找出缺失的日期
+            if len(sorted_items) > 1:
+                try:
+                    date_objs = [datetime.strptime(d, "%Y-%m-%d") for d in sorted_items]
+                    missing_dates = []
+                    for i in range(len(date_objs) - 1):
+                        current = date_objs[i]
+                        next_date = date_objs[i + 1]
+                        days_diff = (next_date - current).days
+                        if days_diff > 1:
+                            for j in range(1, days_diff):
+                                missing = current.replace(day=current.day + j)
+                                missing_dates.append(missing.strftime("%Y-%m-%d"))
+                    
+                    # 輸出簽到記錄
+                    for date in sorted_items:
+                        output.append(f"  📆 {date} ✅")
+                    
+                    # 輸出缺失記錄
+                    if missing_dates:
+                        output.append("")
+                        output.append("【缺失記錄】")
+                        for date in missing_dates:
+                            output.append(f"  📆 {date} ❌")
+                except:
+                    # 如果日期解析失敗，直接輸出
+                    for date in sorted_items:
+                        output.append(f"  📆 {date} ✅")
+            else:
+                for date in sorted_items:
+                    output.append(f"  📆 {date} ✅")
+        else:
+            output.append("【簽到記錄】")
+            output.append("  📭 暫無簽到記錄")
+        
+        output.append("")
+        
+        # 使用統計
+        output.append("【使用統計】")
+        output.append(f"  📤 今日發送：{send_num}")
+        output.append(f"  📥 今日使用：{used_num}")
+        output.append(f"  💾 可用額度：{available_num}")
+        
+        # 狀態提示
+        if available_num == 0:
+            output.append("")
+            output.append("  ⚠️ 提醒：可用額度不足")
+        
+        output.append("")
+        output.append("=" * 50)
+        output.append(f" 報告時間：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        output.append("=" * 50)
+        
+        return "\n".join(output)
+        
+    except json.JSONDecodeError as e:
+        return f"❌ JSON 解析錯誤：{str(e)}"
+    except Exception as e:
+        return f"❌ 格式化錯誤：{str(e)}"
+
+def get_markdown_format(json_data):
+    """
+    將簽到狀態轉換為 Markdown 格式（適合 GitHub Action Summary）
+    """
+    try:
+        if isinstance(json_data, str):
+            data = json.loads(json_data)
+        else:
+            data = json_data
+        
+        if data.get('status') != 200:
+            return f"❌ 錯誤：API 回應異常 (狀態碼: {data.get('status')})"
+        
+        sign_data = data.get('data', {})
+        sign_status = sign_data.get('SigninStatus', 0)
+        sign_count = sign_data.get('signcount', 0)
+        items = sign_data.get('items', [])
+        
+        status_text = "✅ 已簽到" if sign_status == 1 else "❌ 未簽到"
+        
+        # 建立 Markdown 表格
+        markdown = []
+        markdown.append("## 📊 簽到狀態報告")
+        markdown.append("")
+        markdown.append("| 項目 | 狀態 |")
+        markdown.append("|------|------|")
+        markdown.append(f"| 🔐 簽到狀態 | {status_text} |")
+        markdown.append(f"| 📊 連續簽到天數 | {sign_count} 天 |")
+        
+        if items:
+            items_str = ", ".join(items)
+            markdown.append(f"| 📆 簽到記錄 | {items_str} |")
+            
+            # 詳細記錄
+            markdown.append("")
+            markdown.append("### 📝 簽到明細")
+            for date in sorted(items):
+                markdown.append(f"- {date} ✅")
+        else:
+            markdown.append(f"| 📆 簽到記錄 | 暫無記錄 |")
+        
+        markdown.append("")
+        markdown.append("| 統計項目 | 數值 |")
+        markdown.append("|----------|------|")
+        markdown.append(f"| 📤 發送數量 | {sign_data.get('send_num', 0)} |")
+        markdown.append(f"| 📥 使用數量 | {sign_data.get('used_num', 0)} |")
+        markdown.append(f"| 💾 可用數量 | {sign_data.get('available_send_num', 0)} |")
+        
+        return "\n".join(markdown)
+        
+    except Exception as e:
+        return f"❌ 格式化錯誤：{str(e)}"
+
 
 def send_wechat_notification(failed_accounts, total_count, success_count):
     """发送企业微信通知"""
@@ -172,7 +330,7 @@ def process_account(account_info, index, total, failed_list):
             payload["sign"] = sign_val
             response = requests.post(URL, headers=HEADERS, json=payload, timeout=40)
             resp_json = response.json()
-            print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
+            print(f"      {format_sign_status(resp_json)}")
             
             return True
         else:
