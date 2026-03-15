@@ -173,8 +173,6 @@ def process_account(account_info, index, total, failed_list):
         return False
 
     try:
-        
-
         print(f"      ⏳ 檢查簽到..等待 {delay:.1f}s...")
         time.sleep(delay)
 
@@ -189,8 +187,6 @@ def process_account(account_info, index, total, failed_list):
             is_success = True
         elif "success" in str(resp_json).lower():
             is_success = True
-        elif GLOBAL_METHOD == "add.signon.item" and ("已签到" in msg or "成功" in msg or "重复" in msg):
-            is_success = True
 
         if is_success:
             print(f"      ✅ 结果: 成功 | {msg}")
@@ -198,7 +194,7 @@ def process_account(account_info, index, total, failed_list):
                 print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
             return True
         else:
-            print(f"      ⚠️ 结果: 失败 (Code:{code}) | {msg}")
+            print(f"      ⚠️ 檢查簽到结果: 失败 (Code:{code}) | {msg}")
             # 失败时强制打印完整返回
             print(f"      └─ 完整返回:\n{json.dumps(resp_json, ensure_ascii=False, indent=4)}")
 
