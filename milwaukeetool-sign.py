@@ -181,17 +181,6 @@ def process_account(account_info, index, total, failed_list):
         code = resp_json.get("code")
         msg = str(resp_json)
         print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
-        
-        else:
-            # print(f"      ⚠️ 檢查簽到结果: 失败 (Code:{code}) | {msg}")
-            # 失败时强制打印完整返回
-            # print(f"      └─ 完整返回:\n{json.dumps(resp_json, ensure_ascii=False, indent=4)}")
-
-            # 记录失败信息用于通知
-            # short_msg = msg if len(msg) < 50 else msg[:47] + "..."
-            # failed_list.append((name, f"{short_msg} (Code:{code})"))
-            return False
-
     except Exception as e:
         err_msg = str(e)
         print(f"      ❌ 结果: 网络/系统错误 - {err_msg}")
