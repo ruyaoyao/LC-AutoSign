@@ -160,6 +160,8 @@ def process_account(account_info, index, total, failed_list):
             print("\n📢 檢查簽到天數")
 
             payload["method"] = "get.signon.list"#
+            sign_val = generate_sign(payload)
+            payload["sign"] = sign_val
             response = requests.post(URL, headers=HEADERS, json=payload, timeout=10)
             resp_json = response.json()
             print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
