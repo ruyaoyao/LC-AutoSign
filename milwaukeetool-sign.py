@@ -18,7 +18,7 @@ GLOBAL_STYPE = 1
 WEBHOOK_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=693axxx6-848f-49ba-a110-20ae080baf95"
 
 # 【调试开关】True: 打印完整返回JSON; False: 仅失败时打印66cc63a1-0679-9888-3146-0b13a88d9901
-SHOW_RAW_RESPONSE = False
+SHOW_RAW_RESPONSE = True
 
 SECRET = "36affdc58f50e1035649abc808c22b48"
 APPKEY = "76472358"
@@ -142,6 +142,47 @@ def process_account(account_info, index, total, failed_list):
 
         code = resp_json.get("code")
         msg = resp_json.get("msg", "") or resp_json.get("message", "") or str(resp_json)
+
+        is_success = False
+        if code == 200:
+            is_success = True
+        elif "success" in str(resp_json).lower():
+            is_success = True
+        elif GLOBAL_METHOD == "add.signon.item" and ("已签到" in msg or "成功" in msg or "重复" in msg):
+            is_success = True
+
+        if is_success:
+            print(f"      ✅ 结果: 成功 | {msg}")
+            if SHOW_RAW_RESPONSE:
+                print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
+            return True
+        else:
+            print(f"      ⚠️ 结果: 失败 (Code:{code}) | {msg}")
+            # 失败时强制打印完整返回
+            print(f"      └─ 完整返回:\n{json.dumps(resp_json, ensure_ascii=False, indent=4)}")
+
+            # 记录失败信息用于通知
+            short_msg = msg if len(msg) < 50 else msg[:47] + "..."
+            failed_list.append((name, f"{short_msg} (Code:{code})"))
+            return False
+
+    except Exception as e:
+        err_msg = str(e)
+        print(f"      ❌ 结果: 网络/系统错误 - {err_msg}")
+        failed_list.append((name, f"网络错误: {err_msg}"))
+        return False
+
+    try:
+        
+
+        print(f"      ⏳ 檢查簽到..等待 {delay:.1f}s...")
+        time.sleep(delay)
+
+        response = requests.post('https://service.milwaukeetool.cn/api/v1/signon', headers=HEADERS, json=payload, timeout=20)
+        resp_json = response.json()
+
+        code = resp_json.get("code")
+        msg = str(resp_json.get("data"))
 
         is_success = False
         if code == 200:
