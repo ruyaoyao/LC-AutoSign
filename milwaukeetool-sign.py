@@ -155,6 +155,7 @@ def process_account(account_info, index, total, failed_list):
             print(f"      ✅ 结果: 成功 | {msg}")
             if SHOW_RAW_RESPONSE:
                 print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
+            return True
         else:
             print(f"      ⚠️ 结果: 失败 (Code:{code}) | {msg}")
             # 失败时强制打印完整返回
@@ -165,23 +166,6 @@ def process_account(account_info, index, total, failed_list):
             failed_list.append((name, f"{short_msg} (Code:{code})"))
             return False
 
-    except Exception as e:
-        err_msg = str(e)
-        print(f"      ❌ 结果: 网络/系统错误 - {err_msg}")
-        failed_list.append((name, f"网络错误: {err_msg}"))
-        return False
-
-    try:
-        print(f"      ⏳ 檢查簽到..等待 {delay:.1f}s...")
-        time.sleep(delay)
-        payload["method"] = str("get.signon.list")
-        response = requests.post(URL, headers=HEADERS, json=payload, timeout=20)
-        resp_json = response.json()
-
-        code = resp_json.get("code")
-        msg = str(resp_json)
-        print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
-        return True
     except Exception as e:
         err_msg = str(e)
         print(f"      ❌ 结果: 网络/系统错误 - {err_msg}")
