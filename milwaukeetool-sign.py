@@ -18,7 +18,7 @@ GLOBAL_STYPE = 1
 WEBHOOK_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=693axxx6-848f-49ba-a110-20ae080baf95"
 
 # 【调试开关】True: 打印完整返回JSON; False: 仅失败时打印66cc63a1-0679-9888-3146-0b13a88d9901
-SHOW_RAW_RESPONSE = False
+SHOW_RAW_RESPONSE = True
 
 SECRET = "36affdc58f50e1035649abc808c22b48"
 APPKEY = "76472358"
