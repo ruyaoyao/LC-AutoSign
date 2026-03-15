@@ -314,9 +314,11 @@ def process_account(account_info, index, total, failed_list):
             if SHOW_RAW_RESPONSE:
                 print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
 
-            
-            print("\n📢 檢查簽到天數")
-
+            #--------
+            print("\n📢 開始檢查簽到天數")
+            delay = random.uniform(1.0, 2.5)
+            print(f"      ⏳ 等待 {delay:.1f}s...")
+            time.sleep(delay)
             payload = {
                 "token": token,
                 "client_id": client_id,
@@ -330,7 +332,7 @@ def process_account(account_info, index, total, failed_list):
             payload["sign"] = sign_val
             response = requests.post(URL, headers=HEADERS, json=payload, timeout=40)
             resp_json = response.json()
-            print(f"      {format_sign_status(resp_json)}")
+            print(f"{format_sign_status(resp_json)}")
             
             return True
         else:
