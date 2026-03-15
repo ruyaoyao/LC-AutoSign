@@ -181,6 +181,7 @@ def process_account(account_info, index, total, failed_list):
         code = resp_json.get("code")
         msg = str(resp_json)
         print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
+        return True
     except Exception as e:
         err_msg = str(e)
         print(f"      ❌ 结果: 网络/系统错误 - {err_msg}")
