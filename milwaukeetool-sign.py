@@ -155,7 +155,6 @@ def process_account(account_info, index, total, failed_list):
             print(f"      ✅ 结果: 成功 | {msg}")
             if SHOW_RAW_RESPONSE:
                 print(f"      └─ 返回: {json.dumps(resp_json, ensure_ascii=False)}")
-            return True
         else:
             print(f"      ⚠️ 结果: 失败 (Code:{code}) | {msg}")
             # 失败时强制打印完整返回
