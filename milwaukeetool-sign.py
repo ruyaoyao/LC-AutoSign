@@ -241,6 +241,21 @@ def send_wechat_notification(failed_accounts, total_count, success_count):
         print(f"\n⚠️  通知发送异常: {str(e)}")
 
 
+# ======== 推送通知 ========
+
+def send_msg_by_server(send_key, title, content):
+    push_url = f'https://sctapi.ftqq.com/{send_key}.send'
+    data = {
+        'text': title,
+        'desp': content
+    }
+    try:
+        response = requests.post(push_url, data=data)
+        return response.json()
+    except RequestException:
+        return None
+
+
 def process_account(account_info, index, total, failed_list):
     token = os.getenv('MILWAUKEETOOL_TOKEN_LIST', '')
     client_id = os.getenv('MILWAUKEETOOL_CLIENT_ID', '')
@@ -320,8 +335,25 @@ def process_account(account_info, index, total, failed_list):
             payload["sign"] = sign_val
             response = requests.post(URL, headers=HEADERS, json=payload, timeout=40)
             resp_json = response.json()
-            print(f"{format_sign_status(resp_json)}")
+            signResult = format_sign_status(resp_json)
+            print(f"{signResult}")
             
+            if code == 500:
+                SendKeyList = [key.strip() for key in SEND_KEY_LIST.split(',') if key.strip()]
+                print(f"📤 检测到有簽到，准备发送通知给 SendKey: {send_key[:5]}...")
+                
+                response = send_msg_by_server(send_key, "milwaukeetool签到汇总", content)
+                
+                if response and response.get('code') == 0:
+                    print(f"✅ 通知发送成功！消息ID: {response.get('data', {}).get('pushid', '')}")
+                    notification_sent = True
+                else:
+                    error_msg = response.get('message') if response else '未知错误'
+                    print(f"❌ 通知发送失败！错误: {error_msg}")
+            else:
+                print(f"⏭️ SendKey: {send_key[:5]}... 组内无金豆获取，跳过通知")
+        
+
             return True
         else:
             print(f"      ⚠️ 结果: 失败 (Code:{code}) | {msg}")
