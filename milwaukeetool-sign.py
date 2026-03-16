@@ -344,6 +344,7 @@ def process_account(account_info, index, total, failed_list):
             
             if signStatus == 500:
                 SendKeyList = [key.strip() for key in SEND_KEY_LIST.split(',') if key.strip()]
+                SendKeyList = SendKeyList[:min_length]
                 print(f"📤 检测到有簽到，准备发送通知...")
                 
                 response = send_msg_by_server(SendKeyList, "milwaukeetool签到汇总", signResult)
