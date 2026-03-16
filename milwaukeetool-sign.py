@@ -342,7 +342,12 @@ def process_account(account_info, index, total, failed_list):
             signResult = format_sign_status(resp_json)
             print(f"{signResult}")
             
-            if signStatus == 500:
+            SendKeyList = [key.strip() for key in SEND_KEY_LIST.split(',') if key.strip()]
+            print(f"🔧 SendKeyList共发现 {SendKeyList}")
+            # 确保长度一致
+            SendKeyList = SendKeyList[len(SendKeyList)]
+            
+            if signStatus == 200:
                 print(f"📤 检测到有簽到，准备发送通知...{SEND_KEY_LIST}")
                 
                 response = send_msg_by_server(SEND_KEY_LIST, "milwaukeetool签到汇总", signResult)
