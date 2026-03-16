@@ -346,7 +346,7 @@ def process_account(account_info, index, total, failed_list):
                 SendKeyList = [key.strip() for key in SEND_KEY_LIST.split(',') if key.strip()]
                 print(f"📤 检测到有簽到，准备发送通知...")
                 
-                response = send_msg_by_server(SendKeyList, "milwaukeetool签到汇总", content)
+                response = send_msg_by_server(SendKeyList, "milwaukeetool签到汇总", signResult)
                 
                 if response and response.get('code') == 0:
                     print(f"✅ 通知发送成功！消息ID: {response.get('data', {}).get('pushid', '')}")
