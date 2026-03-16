@@ -13,6 +13,9 @@ GLOBAL_METHOD = "add.signon.item"# 签到方法
 # GLOBAL_METHOD = "get.signon.list"#这个是签到天数的
 GLOBAL_STYPE = 1
 
+
+SEND_KEY_LIST = os.getenv('SEND_KEY_LIST', '')
+
 # 【通知配置】企业微信 Webhook 地址
 # 请替换为你自己的 key (替换掉示例中的 key)
 WEBHOOK_URL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=693axxx6-848f-49ba-a110-20ae080baf95"
