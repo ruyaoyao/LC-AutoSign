@@ -143,11 +143,6 @@ def format_sign_status(json_data):
         output.append(f"  📥 今日使用：{used_num}")
         output.append(f"  💾 可用額度：{available_num}")
         
-        # 狀態提示
-        if available_num == 0:
-            output.append("")
-            output.append("  ⚠️ 提醒：可用額度不足")
-        
         output.append("")
         output.append("=" * 50)
         output.append(f" 報告時間：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -200,14 +195,7 @@ def get_markdown_format(json_data):
                 markdown.append(f"- {date} ✅")
         else:
             markdown.append(f"| 📆 簽到記錄 | 暫無記錄 |")
-        
-        markdown.append("")
-        markdown.append("| 統計項目 | 數值 |")
-        markdown.append("|----------|------|")
-        markdown.append(f"| 📤 發送數量 | {sign_data.get('send_num', 0)} |")
-        markdown.append(f"| 📥 使用數量 | {sign_data.get('used_num', 0)} |")
-        markdown.append(f"| 💾 可用數量 | {sign_data.get('available_send_num', 0)} |")
-        
+            
         return "\n".join(markdown)
         
     except Exception as e:
