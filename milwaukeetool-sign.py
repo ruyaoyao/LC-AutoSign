@@ -340,9 +340,9 @@ def process_account(account_info, index, total, failed_list):
             
             if code == 500:
                 SendKeyList = [key.strip() for key in SEND_KEY_LIST.split(',') if key.strip()]
-                print(f"📤 检测到有簽到，准备发送通知给 SendKey: {send_key[:5]}...")
+                print(f"📤 检测到有簽到，准备发送通知...")
                 
-                response = send_msg_by_server(send_key, "milwaukeetool签到汇总", content)
+                response = send_msg_by_server(SendKeyList, "milwaukeetool签到汇总", content)
                 
                 if response and response.get('code') == 0:
                     print(f"✅ 通知发送成功！消息ID: {response.get('data', {}).get('pushid', '')}")
@@ -351,7 +351,7 @@ def process_account(account_info, index, total, failed_list):
                     error_msg = response.get('message') if response else '未知错误'
                     print(f"❌ 通知发送失败！错误: {error_msg}")
             else:
-                print(f"⏭️ SendKey: {send_key[:5]}... 组内无金豆获取，跳过通知")
+                print(f"⏭️ SendKey... 组内无金豆获取，跳过通知")
         
 
             return True
