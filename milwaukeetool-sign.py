@@ -401,7 +401,7 @@ def main():
     failed_list = []  # 存储 (名字, 原因)
 
     for i, acc in enumerate(accounts, 1):
-        if process_account(acc, i, len(accounts), failed_list):
+        if process_account(acc, i, len(accounts), failed_list)
             success_count += 1
 
     sendNotification();
