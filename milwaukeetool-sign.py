@@ -194,19 +194,19 @@ def get_markdown_format(json_data, client_id=None):
         markdown.append("| 項目 | 狀態 |")
         markdown.append("|------|------|")
         if client_id is not None:
-            markdown.append(f"| 🆔 client_id | `{client_id}` |")
-        markdown.append(f"| 🔐 簽到狀態 | {status_text} |")
-        markdown.append(f"| 📊 連續簽到天數 | {sign_count} 天 |")
+            markdown.append(f"| 🆔 client_id | `{client_id}` |\n")
+        markdown.append(f"| 🔐 簽到狀態 | {status_text} |\n")
+        markdown.append(f"| 📊 連續簽到天數 | {sign_count} 天 |\n")
 
         if items:
             items_str = ", ".join(items)
-            markdown.append(f"| 📆 簽到記錄 | {items_str} |")
+            markdown.append(f"| 📆 簽到記錄 | {items_str} |\n")
 
             # 詳細記錄
             markdown.append("")
-            markdown.append("### 📝 簽到明細")
+            markdown.append("### 📝 簽到明細\n")
             for date in sorted(items):
-                markdown.append(f"- {date} ✅")
+                markdown.append(f"- {date} ✅\n")
         else:
             markdown.append(f"| 📆 簽到記錄 | 暫無記錄 |")
 
@@ -377,9 +377,15 @@ def signAndList(token, client_id, account_index=1):
             signResult = format_sign_status(resp_json, client_id=client_id)
             print(f"{signResult}")
 
-            # Push summary when sign API returns OK (200) or already-signed (500, e.g. message 已签到)
-            if signStatus in (200, 500):
+            # Only Server 酱 when sign API returns 200. add.signon.item + 500 + 已签到: no push.
+            if signStatus == 200:
                 RESULT_LOG.append(signResult)
+            elif (
+                GLOBAL_METHOD == "add.signon.item"
+                and signStatus == 500
+                and ("已签到" in str(msg) or "已簽到" in str(msg))
+            ):
+                print("⏭️ add.signon.item 返回 500（已簽到），不發 Server 酱通知")
             else:
                 print(f"⏭️ SendKey... 无更動获取，跳过通知 (status={signStatus})")
             return True
