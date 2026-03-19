@@ -72,11 +72,11 @@ def format_sign_status(json_data):
             data = json.loads(json_data)
         else:
             data = json_data
-        
+
         # 檢查回應狀態
         if data.get('status') != 200:
             return f"❌ 錯誤：API 回應異常 (狀態碼: {data.get('status')})"
-        
+
         # 取得簽到資料
         sign_data = data.get('data', {})
         sign_status = sign_data.get('SigninStatus', 0)
@@ -85,14 +85,14 @@ def format_sign_status(json_data):
         send_num = sign_data.get('send_num', 0)
         used_num = sign_data.get('used_num', 0)
         available_num = sign_data.get('available_send_num', 0)
-        
+
         # 格式化輸出
         output = []
         output.append("=" * 50)
         output.append(" 📋 簽到系統狀態報告 ".center(48, "="))
         output.append("=" * 50)
         output.append("")
-        
+
         # 基本狀態
         status_text = "✅ 已簽到" if sign_status == 1 else "❌ 未簽到"
         output.append(f"【基本資訊】")
@@ -100,13 +100,13 @@ def format_sign_status(json_data):
         output.append(f"  📊 連續簽到：{sign_count} 天")
         output.append(f"  📅 簽到總數：{len(items)} 天")
         output.append("")
-        
+
         # 簽到記錄
         if items:
             output.append("【簽到記錄】")
             # 排序日期
             sorted_items = sorted(items)
-            
+
             # 找出缺失的日期
             if len(sorted_items) > 1:
                 try:
@@ -120,11 +120,11 @@ def format_sign_status(json_data):
                             for j in range(1, days_diff):
                                 missing = current.replace(day=current.day + j)
                                 missing_dates.append(missing.strftime("%Y-%m-%d"))
-                    
+
                     # 輸出簽到記錄
                     for date in sorted_items:
                         output.append(f"  📆 {date} ✅")
-                    
+
                     # 輸出缺失記錄
                     if missing_dates:
                         output.append("")
@@ -141,22 +141,22 @@ def format_sign_status(json_data):
         else:
             output.append("【簽到記錄】")
             output.append("  📭 暫無簽到記錄")
-        
+
         output.append("")
-        
+
         # 使用統計
         output.append("【使用統計】")
         output.append(f"  📤 今日發送：{send_num}")
         output.append(f"  📥 今日使用：{used_num}")
         output.append(f"  💾 可用額度：{available_num}")
-        
+
         output.append("")
         output.append("=" * 50)
         output.append(f" 報告時間：{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         output.append("=" * 50)
-        
+
         return "\n".join(output)
-        
+
     except json.JSONDecodeError as e:
         return f"❌ JSON 解析錯誤：{str(e)}"
     except Exception as e:
@@ -171,17 +171,17 @@ def get_markdown_format(json_data):
             data = json.loads(json_data)
         else:
             data = json_data
-        
+
         if data.get('status') != 200:
             return f"❌ 錯誤：API 回應異常 (狀態碼: {data.get('status')})"
-        
+
         sign_data = data.get('data', {})
         sign_status = sign_data.get('SigninStatus', 0)
         sign_count = sign_data.get('signcount', 0)
         items = sign_data.get('items', [])
-        
+
         status_text = "✅ 已簽到" if sign_status == 1 else "❌ 未簽到"
-        
+
         # 建立 Markdown 表格
         markdown = []
         markdown.append("## 📊 簽到狀態報告")
@@ -190,11 +190,11 @@ def get_markdown_format(json_data):
         markdown.append("|------|------|")
         markdown.append(f"| 🔐 簽到狀態 | {status_text} |")
         markdown.append(f"| 📊 連續簽到天數 | {sign_count} 天 |")
-        
+
         if items:
             items_str = ", ".join(items)
             markdown.append(f"| 📆 簽到記錄 | {items_str} |")
-            
+
             # 詳細記錄
             markdown.append("")
             markdown.append("### 📝 簽到明細")
@@ -202,9 +202,9 @@ def get_markdown_format(json_data):
                 markdown.append(f"- {date} ✅")
         else:
             markdown.append(f"| 📆 簽到記錄 | 暫無記錄 |")
-            
+
         return "\n".join(markdown)
-        
+
     except Exception as e:
         return f"❌ 格式化錯誤：{str(e)}"
 
@@ -287,9 +287,9 @@ def processAccount():
     print(f"🔧 共发现 {min_length} 个账号需要签到")
 
     for i, t in enumerate(tokenList, 1):
-        if signAndList(tokenList[i], clientIdList[i]):
+       if signAndList(tokenList[i], clientIdList[i]):
 
-    
+
 def signAndList(token, client_id):
     now = datetime.now()
     timestamp_str = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -357,7 +357,7 @@ def signAndList(token, client_id):
             resp_json = response.json()
             signResult = format_sign_status(resp_json)
             print(f"{signResult}")
-        
+
             if signStatus == 200:
                 RESULT_LOG.append(signResult)
             else:
@@ -381,9 +381,9 @@ def signAndList(token, client_id):
 
 def sendNotification():
     print(f"📤 检测到有簽到，准备发送通知...{SEND_KEY_LIST}")
-    
+
     response = send_msg_by_server(SEND_KEY_LIST, "milwaukeetool签到汇总", RESULT_LOG)
-    
+
     if response and response.get('code') == 0:
         print(f"✅ 通知发送成功！消息ID: {response.get('data', {}).get('pushid', '')}")
         notification_sent = True
@@ -405,7 +405,7 @@ def main():
             success_count += 1
 
     sendNotification();
-    
+
     # 汇总
     print("\n" + "=" * 60)
     print(f"🏁 任务结束")
