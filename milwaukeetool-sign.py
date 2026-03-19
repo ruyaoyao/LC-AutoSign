@@ -287,7 +287,7 @@ def processAccount():
     print(f"🔧 共发现 {min_length} 个账号需要签到")
 
     for i, t in enumerate(tokenList, 1):
-       if signAndList(tokenList[i], clientIdList[i]):
+       signAndList(tokenList[i], clientIdList[i]):
 
 
 def signAndList(token, client_id):
