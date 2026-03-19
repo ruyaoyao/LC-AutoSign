@@ -287,7 +287,7 @@ def processAccount():
     print(f"🔧 共发现 {min_length} 个账号需要签到")
 
     for i, t in enumerate(tokenList, 1):
-       signAndList(tokenList[i], clientIdList[i]):
+       signAndList(tokenList[i], clientIdList[i])
 
 
 def signAndList(token, client_id):
@@ -400,11 +400,8 @@ def main():
     success_count = 0
     failed_list = []  # 存储 (名字, 原因)
 
-    for i, acc in enumerate(accounts, 1):
-        if process_account(acc, i, len(accounts), failed_list)
-            success_count += 1
-
-    sendNotification();
+    processAccount()
+    sendNotification()
 
     # 汇总
     print("\n" + "=" * 60)
