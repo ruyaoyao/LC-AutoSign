@@ -1,4 +1,5 @@
 import requests
+from requests.exceptions import RequestException
 import json
 import hashlib
 import time
@@ -62,7 +63,7 @@ def generate_sign(params_dict):
     s += SECRET
     return hashlib.md5(s.encode('utf-8')).hexdigest()
 
-def format_sign_status(json_data):
+def format_sign_status(json_data, client_id=None):
     """
     將簽到狀態 JSON 資料格式化為易讀的文字
     """
@@ -75,7 +76,8 @@ def format_sign_status(json_data):
 
         # 檢查回應狀態
         if data.get('status') != 200:
-            return f"❌ 錯誤：API 回應異常 (狀態碼: {data.get('status')})"
+            cid = f" | client_id: {client_id}" if client_id is not None else ""
+            return f"❌ 錯誤：API 回應異常 (狀態碼: {data.get('status')}){cid}"
 
         # 取得簽到資料
         sign_data = data.get('data', {})
@@ -96,6 +98,8 @@ def format_sign_status(json_data):
         # 基本狀態
         status_text = "✅ 已簽到" if sign_status == 1 else "❌ 未簽到"
         output.append(f"【基本資訊】")
+        if client_id is not None:
+            output.append(f"  🆔 client_id：{client_id}")
         output.append(f"  🔐 簽到狀態：{status_text}")
         output.append(f"  📊 連續簽到：{sign_count} 天")
         output.append(f"  📅 簽到總數：{len(items)} 天")
@@ -162,7 +166,7 @@ def format_sign_status(json_data):
     except Exception as e:
         return f"❌ 格式化錯誤：{str(e)}"
 
-def get_markdown_format(json_data):
+def get_markdown_format(json_data, client_id=None):
     """
     將簽到狀態轉換為 Markdown 格式（適合 GitHub Action Summary）
     """
@@ -173,7 +177,8 @@ def get_markdown_format(json_data):
             data = json_data
 
         if data.get('status') != 200:
-            return f"❌ 錯誤：API 回應異常 (狀態碼: {data.get('status')})"
+            cid = f" | client_id: `{client_id}`" if client_id is not None else ""
+            return f"❌ 錯誤：API 回應異常 (狀態碼: {data.get('status')}){cid}"
 
         sign_data = data.get('data', {})
         sign_status = sign_data.get('SigninStatus', 0)
@@ -188,6 +193,8 @@ def get_markdown_format(json_data):
         markdown.append("")
         markdown.append("| 項目 | 狀態 |")
         markdown.append("|------|------|")
+        if client_id is not None:
+            markdown.append(f"| 🆔 client_id | `{client_id}` |")
         markdown.append(f"| 🔐 簽到狀態 | {status_text} |")
         markdown.append(f"| 📊 連續簽到天數 | {sign_count} 天 |")
 
@@ -267,7 +274,14 @@ def processAccount():
     tokenList = [token.strip() for token in MILWAUKEETOOL_TOKEN_LIST.split(',') if token.strip()]
     clientIdList = [id.strip() for id in MILWAUKEETOOL_CLIENT_ID.split(',') if id.strip()]
 
-    token_show = f"{tokenList[:6]}...{tokenList[-4:]}" if len(tokenList) > 10 else "***"
+    # Mask first token for logs (avoid leaking full credentials)
+    if tokenList:
+        first = tokenList[0]
+        token_show = (
+            f"{first[:6]}...{first[-4:]}" if len(first) > 10 else "***"
+        )
+    else:
+        token_show = "(empty)"
 
     print(f"      ├─ 方法: {GLOBAL_METHOD}")
     print(f"      ├─ ID: {clientIdList}")
@@ -276,7 +290,7 @@ def processAccount():
     if not tokenList or not clientIdList:
         msg = "缺少 token 或 client_id"
         print(f"      ❌ 结果: {msg}")
-        FAILED_LOG.append(msg)
+        FAILED_LOG.append(("config", msg))
         return False
 
     # 确保长度一致
@@ -285,12 +299,16 @@ def processAccount():
     clientIdList = clientIdList[:min_length]
 
     print(f"🔧 共发现 {min_length} 个账号需要签到")
+    print("   （Token 与 CLIENT_ID 须按逗号顺序一一对应：第1个Token↔第1个ID）")
 
-    for i, t in enumerate(tokenList, 1):
-       signAndList(tokenList[i], clientIdList[i])
+    for idx, (token, client_id) in enumerate(zip(tokenList, clientIdList), 1):
+        print(f"\n{'─' * 52}")
+        print(f"📌 账号 {idx}/{min_length}  |  client_id: {client_id}")
+        print(f"{'─' * 52}")
+        signAndList(token, client_id, account_index=idx)
 
 
-def signAndList(token, client_id):
+def signAndList(token, client_id, account_index=1):
     now = datetime.now()
     timestamp_str = now.strftime("%Y-%m-%d %H:%M:%S")
     payload = {
@@ -342,6 +360,7 @@ def signAndList(token, client_id):
             delay = random.uniform(1.0, 2.5)
             print(f"      ⏳ 等待 {delay:.1f}s...")
             time.sleep(delay)
+            timestamp_str = now.strftime("%Y-%m-%d %H:%M:%S")
             payload = {
                 "token": token,
                 "client_id": client_id,
@@ -355,41 +374,70 @@ def signAndList(token, client_id):
             payload["sign"] = sign_val
             response = requests.post(URL, headers=HEADERS, json=payload, timeout=40)
             resp_json = response.json()
-            signResult = format_sign_status(resp_json)
+            signResult = format_sign_status(resp_json, client_id=client_id)
             print(f"{signResult}")
 
-            if signStatus == 200:
+            # Push summary when sign API returns OK (200) or already-signed (500, e.g. message 已签到)
+            if signStatus in (200, 500):
                 RESULT_LOG.append(signResult)
             else:
-                print(f"⏭️ SendKey... 无更動获取，跳过通知")
+                print(f"⏭️ SendKey... 无更動获取，跳过通知 (status={signStatus})")
             return True
         else:
-            print(f"      ⚠️ 结果: 失败 (Code:{code}) | {msg}")
+            api_status = resp_json.get("status")
+            http_code = response.status_code
+            print(
+                f"      ⚠️ 结果: 失败 "
+                f"(HTTP {http_code}, API status={api_status}, code={code}) | {msg}"
+            )
             # 失败时强制打印完整返回
             print(f"      └─ 完整返回:\n{json.dumps(resp_json, ensure_ascii=False, indent=4)}")
 
+            if api_status == 401 or http_code == 401 or "未授权" in str(msg) or "授权" in str(
+                msg
+            ) and "过期" in str(msg):
+                print(
+                    "      💡 该账号 Token 已过期，或与当前 client_id 不是同一组（顺序对错也会 401）。"
+                    "请到 Milwaukee 微信小程序重新登录，抓包/复制新 Token，并更新环境变量里"
+                    f"第 {account_index} 个 Token（与第 {account_index} 个 client_id 对齐）。"
+                )
+
             # 记录失败信息用于通知
             short_msg = msg if len(msg) < 50 else msg[:47] + "..."
-            FAILED_LOG.append((name, f"{short_msg} (Code:{code})"))
+            FAILED_LOG.append(
+                (client_id, f"{short_msg} (HTTP:{http_code}, API:{api_status}, code:{code})")
+            )
             return False
 
     except Exception as e:
         err_msg = str(e)
         print(f"      ❌ 结果: 网络/系统错误 - {err_msg}")
-        FAILED_LOG.append((name, f"网络错误: {err_msg}"))
+        FAILED_LOG.append((client_id, f"网络错误: {err_msg}"))
         return False
 
 def sendNotification():
-    print(f"📤 检测到有簽到，准备发送通知...{SEND_KEY_LIST}")
+    if not RESULT_LOG:
+        print("📤 暂无签到汇总内容，跳过 Server 酱通知。")
+        return
 
-    response = send_msg_by_server(SEND_KEY_LIST, "milwaukeetool签到汇总", RESULT_LOG)
+    keys = [k.strip() for k in SEND_KEY_LIST.split(",") if k.strip()]
+    if not keys:
+        print("📤 未配置 SEND_KEY_LIST，跳过 Server 酱通知。")
+        return
 
-    if response and response.get('code') == 0:
-        print(f"✅ 通知发送成功！消息ID: {response.get('data', {}).get('pushid', '')}")
-        notification_sent = True
-    else:
-        error_msg = response.get('message') if response else '未知错误'
-        print(f"❌ 通知发送失败！错误: {error_msg}")
+    content = "\n\n".join(RESULT_LOG)
+    print(f"📤 检测到有簽到，准备发送通知... (keys: {len(keys)} 个)")
+
+    for send_key in keys:
+        response = send_msg_by_server(send_key, "milwaukeetool签到汇总", content)
+        if response and response.get("code") == 0:
+            print(
+                f"✅ 通知发送成功！(key ...{send_key[-4:]}) 消息ID: "
+                f"{response.get('data', {}).get('pushid', '')}"
+            )
+        else:
+            error_msg = response.get("message") if response else "未知错误"
+            print(f"❌ 通知发送失败！(key ...{send_key[-4:]}) 错误: {error_msg}")
 
 def main():
     print("=" * 60)
