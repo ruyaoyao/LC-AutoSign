@@ -13,8 +13,12 @@ GLOBAL_METHOD = "add.signon.item"# 签到方法
 # GLOBAL_METHOD = "get.signon.list"#这个是签到天数的
 GLOBAL_STYPE = 1
 
-
+MILWAUKEETOOL_TOKEN_LIST = os.getenv('MILWAUKEETOOL_TOKEN_LIST', '')
+MILWAUKEETOOL_CLIENT_ID = os.getenv('MILWAUKEETOOL_CLIENT_ID', '')
 SEND_KEY_LIST = os.getenv('SEND_KEY_LIST', '')
+
+FAILED_LOG = []
+RESULT_LOG = []
 
 # 【通知配置】企业微信 Webhook 地址
 # 请替换为你自己的 key (替换掉示例中的 key)
@@ -259,24 +263,36 @@ def send_msg_by_server(send_key, title, content):
         return None
 
 
-def process_account(account_info, index, total, failed_list):
-    token = os.getenv('MILWAUKEETOOL_TOKEN_LIST', '')
-    client_id = os.getenv('MILWAUKEETOOL_CLIENT_ID', '')
-    token_show = f"{token[:6]}...{token[-4:]}" if len(token) > 10 else "***"
+def processAccount():
+    tokenList = [token.strip() for token in MILWAUKEETOOL_TOKEN_LIST.split(',') if token.strip()]
+    clientIdList = [id.strip() for id in MILWAUKEETOOL_CLIENT_ID.split(',') if id.strip()]
+
+    token_show = f"{tokenList[:6]}...{tokenList[-4:]}" if len(tokenList) > 10 else "***"
 
     print(f"      ├─ 方法: {GLOBAL_METHOD}")
-    print(f"      ├─ ID: {client_id}")
+    print(f"      ├─ ID: {clientIdList}")
     print(f"      └─ Token: {token_show}")
 
-    if not token or not client_id:
+    if not tokenList or not clientIdList:
         msg = "缺少 token 或 client_id"
         print(f"      ❌ 结果: {msg}")
-        failed_list.append((name, msg))
+        FAILED_LOG.append(msg)
         return False
 
+    # 确保长度一致
+    min_length = min(len(tokenList), len(clientIdList))
+    tokenList = tokenList[:min_length]
+    clientIdList = clientIdList[:min_length]
+
+    print(f"🔧 共发现 {min_length} 个账号需要签到")
+
+    for i, t in enumerate(tokenList, 1):
+        if signAndList(tokenList[i], clientIdList[i]):
+
+    
+def signAndList(token, client_id):
     now = datetime.now()
     timestamp_str = now.strftime("%Y-%m-%d %H:%M:%S")
-
     payload = {
         "token": token,
         "client_id": client_id,
@@ -343,20 +359,9 @@ def process_account(account_info, index, total, failed_list):
             print(f"{signResult}")
         
             if signStatus == 200:
-                print(f"📤 检测到有簽到，准备发送通知...{SEND_KEY_LIST}")
-                
-                response = send_msg_by_server(SEND_KEY_LIST, "milwaukeetool签到汇总", signResult)
-                
-                if response and response.get('code') == 0:
-                    print(f"✅ 通知发送成功！消息ID: {response.get('data', {}).get('pushid', '')}")
-                    notification_sent = True
-                else:
-                    error_msg = response.get('message') if response else '未知错误'
-                    print(f"❌ 通知发送失败！错误: {error_msg}")
+                RESULT_LOG.append(signResult)
             else:
-                print(f"⏭️ SendKey... 组内无金豆获取，跳过通知")
-        
-
+                print(f"⏭️ SendKey... 无更動获取，跳过通知")
             return True
         else:
             print(f"      ⚠️ 结果: 失败 (Code:{code}) | {msg}")
@@ -365,15 +370,26 @@ def process_account(account_info, index, total, failed_list):
 
             # 记录失败信息用于通知
             short_msg = msg if len(msg) < 50 else msg[:47] + "..."
-            failed_list.append((name, f"{short_msg} (Code:{code})"))
+            FAILED_LOG.append((name, f"{short_msg} (Code:{code})"))
             return False
 
     except Exception as e:
         err_msg = str(e)
         print(f"      ❌ 结果: 网络/系统错误 - {err_msg}")
-        failed_list.append((name, f"网络错误: {err_msg}"))
+        FAILED_LOG.append((name, f"网络错误: {err_msg}"))
         return False
 
+def sendNotification():
+    print(f"📤 检测到有簽到，准备发送通知...{SEND_KEY_LIST}")
+    
+    response = send_msg_by_server(SEND_KEY_LIST, "milwaukeetool签到汇总", RESULT_LOG)
+    
+    if response and response.get('code') == 0:
+        print(f"✅ 通知发送成功！消息ID: {response.get('data', {}).get('pushid', '')}")
+        notification_sent = True
+    else:
+        error_msg = response.get('message') if response else '未知错误'
+        print(f"❌ 通知发送失败！错误: {error_msg}")
 
 def main():
     print("=" * 60)
@@ -384,21 +400,19 @@ def main():
     success_count = 0
     failed_list = []  # 存储 (名字, 原因)
 
-    process_account(0, 1, 1, failed_list)
+    for i, acc in enumerate(accounts, 1):
+        if process_account(acc, i, len(accounts), failed_list):
+            success_count += 1
 
-    # for i, acc in enumerate(accounts, 1):
-    #     if process_account(acc, i, len(accounts), failed_list):
-    #         success_count += 1
-
+    sendNotification();
+    
     # 汇总
     print("\n" + "=" * 60)
     print(f"🏁 任务结束")
-    print(f"   ✅ 成功: {success_count}")
-    print(f"   ❌ 失败: {len(failed_list)}")
     print("=" * 60)
 
     # 如果有失败，发送通知
-    if len(failed_list) > 0:
+    if len(FAILED_LOG) > 0:
         print("\n失敗。")
     else:
         print("\n🎉 全部成功，无需发送通知。")
