@@ -13,11 +13,6 @@ jobs:
       - name: '检出代码'
         uses: actions/checkout@v3
 
-      - name: '设置Python环境'
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.7
-
       - name: '设置时区为北京时间'
         run: |
           sudo timedatectl set-timezone Asia/Shanghai
