@@ -8,8 +8,6 @@ from datetime import datetime
 from pathlib import Path
 
 # ================= 全局配置区 =================
-CONFIG_FILE = "accounts.json"
-
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
@@ -273,7 +271,7 @@ def main():
         total_points += points
 
         # 账号间大延时，防止频率限制
-        if i < len(accounts):
+        if idx < len(tokenList):
             wait_time = random.uniform(2.0, 4.0)
             print(f"      ⏳ 等待 {wait_time:.1f}s 后处理下一个账号...")
             time.sleep(wait_time)
@@ -281,7 +279,7 @@ def main():
     # 汇总
     print("\n" + "=" * 60)
     print("🏁 任务结束")
-    print(f"   ✅ 签到成功: {success_count} / {len(accounts)}")
+    print(f"   ✅ 签到成功: {success_count} / {len(tokenList)}")
     print(f"   💰 累计积分: {total_points}")
     if failed_list:
         print(f"   ❌ 异常账号: {len(failed_list)}")
@@ -292,8 +290,8 @@ def main():
         for client_id, reason in failed_list:
             print(f"   • {client_id}: {reason}")
 
-        send_wechat_notification(failed_list, len(accounts), success_count, total_points)
-        send_telegram_notification(failed_list, len(accounts), success_count, total_points)
+        send_wechat_notification(failed_list, len(tokenList), success_count, total_points)
+        send_telegram_notification(failed_list, len(tokenList), success_count, total_points)
     else:
         print("\n🎉 全部执行成功！")
 
