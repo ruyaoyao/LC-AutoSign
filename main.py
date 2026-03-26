@@ -10,6 +10,7 @@ from requests.exceptions import RequestException
 from collections import defaultdict
 
 TOKEN_LIST = os.getenv('TOKEN_LIST', '')
+SEND_KEY_LIST = os.getenv('SEND_KEY_LIST', '')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
