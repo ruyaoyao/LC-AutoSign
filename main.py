@@ -10,7 +10,8 @@ from requests.exceptions import RequestException
 from collections import defaultdict
 
 TOKEN_LIST = os.getenv('TOKEN_LIST', '')
-SEND_KEY_LIST = os.getenv('SEND_KEY_LIST', '')
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
 # 接口配置
 url = 'https://m.jlc.com/api/activity/sign/signIn?source=3'
@@ -56,6 +57,34 @@ def send_msg_by_server(send_key, title, content):
         return response.json()
     except RequestException:
         return None
+
+def send_telegram_notification(title, content):
+    """发送Telegram通知"""
+
+    # Telegram
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        print("\n❌ 错误: 未配置Telegram通知，请检查环境变量。")
+        return
+
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    content = (
+        f"🤖 **{title}**\n"
+        f"📅 时间: {now_str}\n"
+        f"--------------------------\n"
+        f"{content}\n"
+    )
+
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        params = {'chat_id': TELEGRAM_CHAT_ID, 'text': content}
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            print("\n📢 Telegram-通知已推送。")
+        else:
+            print(f"\n⚠️ Telegram-通知发送异常: {response.status_code} {response.text}")
+    except Exception as e:
+        print(f"\n⚠️ 通知发送异常: {str(e)}")
 
 
 # ======== 单个账号签到逻辑 ========
@@ -205,7 +234,7 @@ def main():
             content = "\n\n".join(results)
             print(f"📤 检测到有金豆获取，准备发送通知给 SendKey: {send_key[:5]}...")
             
-            response = send_msg_by_server(send_key, "嘉立创签到汇总", content)
+            response = send_telegram_notification("嘉立创签到汇总", content)
             
             if response and response.get('code') == 0:
                 print(f"✅ 通知发送成功！消息ID: {response.get('data', {}).get('pushid', '')}")
