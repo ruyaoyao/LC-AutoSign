@@ -8,6 +8,8 @@ from datetime import datetime
 from pathlib import Path
 
 # ================= 全局配置区 =================
+CONFIG_FILE = "accounts.json"
+
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 
@@ -210,4 +212,91 @@ def send_wechat_notification(failed_accounts, total_count, success_count, total_
         resp = requests.post(WEBHOOK_URL, json=payload, timeout=5)
         if resp.status_code == 200 and resp.json().get("errcode") == 0:
             print("\n📢 已发送通知到企业微信。")
+    except Exception as e:
+        print(f"\n⚠️ 通知发送异常: {str(e)}")
+
+
+def send_telegram_notification(failed_accounts, total_count, success_count, total_points):
+    """发送Telegram通知"""
+
+    # Telegram
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        print("\n❌ 错误: 未配置Telegram通知，请检查环境变量。")
+        return
+
+    now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    fail_details = "\n".join([f"• {name}: {reason}" for name, reason in failed_accounts])
+
+    content = (
+        f"🤖 **签到 & 积分报告**\n"
+        f"📅 时间: {now_str}\n"
+        f"--------------------------\n"
+        f"✅ 成功: {success_count} 个\n"
+        f"❌ 失败: {len(failed_accounts)} 个\n"
+        f"💰 总积分: {total_points}\n"
+        f"--------------------------\n"
+        f"⚠️ **失败详情:**\n{fail_details}"
+    )
+
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        params = {'chat_id': TELEGRAM_CHAT_ID, 'text': content}
+        response = requests.get(url, params=params)
+        if response.status_code == 200:
+            print("\n📢 Telegram-通知已推送。")
+        else:
+            print(f"\n⚠️ Telegram-通知发送异常: {response.status_code} {response.text}")
+    except Exception as e:
+        print(f"\n⚠️ 通知发送异常: {str(e)}")
+
+def main():
+    print("=" * 60)
+    print("🚀 美沃奇自动签到 + 积分查询工具")
+    print(f"📅 时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print("=" * 60)
+
+
+    tokenList = [token.strip() for token in MILWAUKEETOOL_TOKEN_LIST.split(',') if token.strip()]
+    clientIdList = [id.strip() for id in MILWAUKEETOOL_CLIENT_ID.split(',') if id.strip()]
+
+    print(f"📂 共加载 {len(tokenList)} 个账号\n")
+
+    success_count = 0
+    total_points = 0
+    failed_list = []
+
+    for idx, (token, client_id) in enumerate(zip(tokenList, clientIdList), 1):
+        is_success, points = process_account(token, client_id, idx, len(tokenList), failed_list)
+
+        if is_success:
+            success_count += 1
+        total_points += points
+
+        # 账号间大延时，防止频率限制
+        if i < len(accounts):
+            wait_time = random.uniform(2.0, 4.0)
+            print(f"      ⏳ 等待 {wait_time:.1f}s 后处理下一个账号...")
+            time.sleep(wait_time)
+
+    # 汇总
+    print("\n" + "=" * 60)
+    print("🏁 任务结束")
+    print(f"   ✅ 签到成功: {success_count} / {len(accounts)}")
+    print(f"   💰 累计积分: {total_points}")
+    if failed_list:
+        print(f"   ❌ 异常账号: {len(failed_list)}")
+    print("=" * 60)
+
+    if failed_list:
+        print("\n⚠️ 异常详情:")
+        for name, reason in failed_list:
+            print(f"   • {name}: {reason}")
+
+        send_wechat_notification(failed_list, len(accounts), success_count, total_points)
+        send_telegram_notification(failed_list, len(accounts), success_count, total_points)
+    else:
+        print("\n🎉 全部执行成功！")
+
+
+if __name__ == "__main__":
     main()
