@@ -69,7 +69,7 @@ def generate_sign(params_dict):
     return hashlib.md5(s.encode('utf-8')).hexdigest()
 
 
-def do_signon(token, client_id, name):
+def do_signon(token, client_id):
     """执行签到操作"""
     now = datetime.now()
     timestamp_str = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -161,7 +161,7 @@ def process_account(token, client_id, index, total, failed_list):
     delay = random.uniform(0.5, 1.5)
     time.sleep(delay)
 
-    sign_success, sign_msg = do_signon(token, client_id, name)
+    sign_success, sign_msg = do_signon(token, client_id)
 
     if sign_success:
         print(f"      ✅ 签到结果: {sign_msg}")
@@ -179,11 +179,11 @@ def process_account(token, client_id, index, total, failed_list):
         print(f"      ✅ 当前积分: {points} (手机: {extra_info})")
         # 如果签到失败但查询成功，视为部分成功，不加入失败列表用于通知，除非业务要求严格
         if not sign_success:
-            failed_list.append((name, f"签到失败({sign_msg}), 但查询成功"))
+            failed_list.append((client_id, f"签到失败({sign_msg}), 但查询成功"))
         return sign_success, points
     else:
         print(f"      ❌ 查询失败: {extra_info}")
-        failed_list.append((name, f"查询失败: {extra_info}"))
+        failed_list.append((client_id, f"查询失败: {extra_info}"))
         return False, 0
 
 
@@ -193,7 +193,7 @@ def send_wechat_notification(failed_accounts, total_count, success_count, total_
         return
 
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    fail_details = "\n".join([f"• {name}: {reason}" for name, reason in failed_accounts])
+    fail_details = "\n".join([f"• {client_id}: {reason}" for client_id, reason in failed_accounts])
 
     content = (
         f"🤖 **签到 & 积分报告**\n"
@@ -225,7 +225,7 @@ def send_telegram_notification(failed_accounts, total_count, success_count, tota
         return
 
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    fail_details = "\n".join([f"• {name}: {reason}" for name, reason in failed_accounts])
+    fail_details = "\n".join([f"• {client_id}: {reason}" for client_id, reason in failed_accounts])
 
     content = (
         f"🤖 **签到 & 积分报告**\n"
@@ -289,8 +289,8 @@ def main():
 
     if failed_list:
         print("\n⚠️ 异常详情:")
-        for name, reason in failed_list:
-            print(f"   • {name}: {reason}")
+        for client_id, reason in failed_list:
+            print(f"   • {client_id}: {reason}")
 
         send_wechat_notification(failed_list, len(accounts), success_count, total_points)
         send_telegram_notification(failed_list, len(accounts), success_count, total_points)
