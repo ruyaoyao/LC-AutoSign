@@ -293,6 +293,7 @@ def main():
         send_wechat_notification(failed_list, len(tokenList), success_count, total_points)
         send_telegram_notification(failed_list, len(tokenList), success_count, total_points)
     else:
+        send_telegram_notification(failed_list, len(tokenList), success_count, total_points)
         print("\n🎉 全部执行成功！")
 
 
