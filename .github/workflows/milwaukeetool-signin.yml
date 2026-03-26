@@ -15,7 +15,8 @@ jobs:
 
     - name: Run Sign Script
       env:
-        SEND_KEY_LIST: ${{ secrets.SEND_KEY_LIST }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         MILWAUKEETOOL_CLIENT_ID: ${{ secrets.MILWAUKEETOOL_CLIENT_ID }}
         MILWAUKEETOOL_TOKEN_LIST: ${{ secrets.MILWAUKEETOOL_TOKEN_LIST }}
       run: |
