@@ -17,5 +17,7 @@ jobs:
       env:
         TOKEN_LIST: ${{ secrets.TOKEN_LIST }}
         SEND_KEY_LIST: ${{ secrets.SEND_KEY_LIST }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       run: |
         python main.py
