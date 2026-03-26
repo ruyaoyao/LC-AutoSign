@@ -2,7 +2,7 @@ name: milwaukeetool Auto Sign
 
 on:
   schedule:
-    - cron: '0 12  * * *'  # 每 6 小时执行一次，UTC 时间
+    - cron: '0 14  * * *'  # 执行一次，UTC 时间
 
   workflow_dispatch:
 
@@ -10,14 +10,24 @@ jobs:
   sign:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: '检出代码'
+        uses: actions/checkout@v3
 
-    - name: Run Sign Script
-      env:
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        MILWAUKEETOOL_CLIENT_ID: ${{ secrets.MILWAUKEETOOL_CLIENT_ID }}
-        MILWAUKEETOOL_TOKEN_LIST: ${{ secrets.MILWAUKEETOOL_TOKEN_LIST }}
-      run: |
-        python milwaukeetool-sign.py
+      - name: '设置Python环境'
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.7
+
+      - name: '设置时区为北京时间'
+        run: |
+          sudo timedatectl set-timezone Asia/Shanghai
+          echo "当前时间: $(date)"
+          
+      - name: Run Sign Script
+        env:
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          MILWAUKEETOOL_CLIENT_ID: ${{ secrets.MILWAUKEETOOL_CLIENT_ID }}
+          MILWAUKEETOOL_TOKEN_LIST: ${{ secrets.MILWAUKEETOOL_TOKEN_LIST }}
+        run: |
+          python milwaukeetool-sign.py
