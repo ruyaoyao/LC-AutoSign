@@ -226,7 +226,7 @@ def send_telegram_notification(failed_accounts, total_count, success_count, tota
     fail_details = "\n".join([f"• {client_id}: {reason}" for client_id, reason in failed_accounts])
 
     content = (
-        f"🤖 **签到 & 积分报告**\n"
+        f"🤖 **美沃奇自动签到 & 积分报告**\n"
         f"📅 时间: {now_str}\n"
         f"--------------------------\n"
         f"✅ 成功: {success_count} 个\n"
