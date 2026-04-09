@@ -2,7 +2,7 @@ name: milwaukeetool Auto Sign
 
 on:
   schedule:
-    - cron: '0 12  * * *'  # 执行一次，UTC 时间
+    - cron: '0 0  * * *'  # 执行一次，UTC 时间
 
   workflow_dispatch:
 
