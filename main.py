@@ -10,7 +10,7 @@ from itertools import cycle
 from requests.exceptions import RequestException
 from collections import defaultdict
 from random_user_agent.user_agent import UserAgent
-from random_user_agent.params import SoftwareName, OperatingSystem
+from random_user_agent.params import SoftwareName, HardwareType
 
 TOKEN_LIST = os.getenv('TOKEN_LIST', '')
 SEND_KEY_LIST = os.getenv('SEND_KEY_LIST', '')
@@ -106,8 +106,7 @@ def sign_in(access_token):
     
     headers = {
         'X-JLC-AccessToken': access_token,
-        'User-Agent': user_agent
-                      'Html5Plus/1.1 (Immersed/20) JlcMobileApp',
+        'User-Agent': user_agent + 'Html5Plus/1.1 (Immersed/20) JlcMobileApp',
     }
 
     try:
