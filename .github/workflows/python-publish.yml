@@ -13,6 +13,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
+    - name: Install dependencies
+      run: |
+        pip install random-user-agent
+        
     - name: Run Sign Script
       env:
         TOKEN_LIST: ${{ secrets.TOKEN_LIST }}
