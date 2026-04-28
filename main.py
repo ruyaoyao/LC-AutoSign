@@ -9,6 +9,8 @@ from datetime import datetime
 from itertools import cycle
 from requests.exceptions import RequestException
 from collections import defaultdict
+from random_user_agent.user_agent import UserAgent
+from random_user_agent.params import SoftwareName, OperatingSystem
 
 TOKEN_LIST = os.getenv('TOKEN_LIST', '')
 SEND_KEY_LIST = os.getenv('SEND_KEY_LIST', '')
@@ -92,10 +94,20 @@ def send_telegram_notification(title, content):
 # ======== 单个账号签到逻辑 ========
 
 def sign_in(access_token):
+    
+    
+    software_names = [SoftwareName.CHROME.value]
+    hardware_types = [HardwareType.MOBILE.value]   
+    
+    user_agent_rotator = UserAgent(software_names=software_names, hardware_types=hardware_types, limit=100)
+
+    # Get Random User Agent String.
+    user_agent = user_agent_rotator.get_random_user_agent()
+    
     headers = {
         'X-JLC-AccessToken': access_token,
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_2_1 like Mac OS X) '
-                      'AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Html5Plus/1.0 (Immersed/20) JlcMobileApp',
+        'User-Agent': user_agent
+                      'Html5Plus/1.1 (Immersed/20) JlcMobileApp',
     }
 
     try:
